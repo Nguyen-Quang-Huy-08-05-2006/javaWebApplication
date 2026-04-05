@@ -1,0 +1,116 @@
+1. XÁC ĐỊNH LỖI TRONG MÃ NGUỒN
+Đoạn code sai:
+public RechargeService() {
+    // Lỗi: Tự khởi tạo thủ công (Hard-code dependency)
+    this.gateway = new InternalPaymentGateway(); 
+}
+
+Phân tích lỗi:
+
+* RechargeService tự tạo đối tượng InternalPaymentGateway bằng từ khóa "new".
+* Điều này khiến class bị phụ thuộc chặt (tight coupling) vào một implementation cụ thể.
+* Vi phạm nguyên lý IoC (Inversion of Control): thay vì để hệ thống cung cấp dependency, class lại tự kiểm soát việc tạo dependency.
+
+
+2. HẬU QUẢ CỦA THIẾT KẾ HIỆN TẠI
+================================
+
+2.1. Khó mở rộng hệ thống
+
+* Khi cần thêm cổng thanh toán mới (Momo, ZaloPay), phải sửa trực tiếp code trong RechargeService.
+* Vi phạm nguyên lý Open/Closed (mở để mở rộng, đóng để sửa đổi).
+
+2.2. Khó kiểm thử (Unit Test)
+
+* Không thể mock PaymentGateway dễ dàng.
+* Gây khó khăn khi viết test độc lập.
+
+2.3. Phụ thuộc cứng (Hard Dependency)
+
+* RechargeService bị ràng buộc với InternalPaymentGateway.
+* Không thể thay thế linh hoạt bằng các implementation khác.
+
+
+3. GIẢI PHÁP: ÁP DỤNG DEPENDENCY INJECTION (DI)
+
+3.1. Tạo interface (abstraction)
+public interface PaymentGateway {
+    void pay(double amount);
+}
+3.2. Tạo các lớp triển khai
+public class InternalPaymentGateway implements PaymentGateway {
+    public void pay(double amount) {
+        System.out.println("Thanh toán nội bộ: " + amount);
+    }
+}
+
+public class MomoPaymentGateway implements PaymentGateway {
+    public void pay(double amount) {
+        System.out.println("Thanh toán qua Momo: " + amount);
+    }
+}
+3.3. Sử dụng Constructor Injection
+public class RechargeService {
+    private PaymentGateway gateway;
+
+    public RechargeService(PaymentGateway gateway) {
+        this.gateway = gateway;
+    }
+
+    public void processRecharge(String username, double amount) {
+        gateway.pay(amount);
+        System.out.println("Nạp " + amount + " cho " + username);
+    }
+}
+Giải thích:
+
+* RechargeService không còn tự tạo PaymentGateway.
+* Dependency được truyền từ bên ngoài vào (Injection).
+* Class chỉ phụ thuộc vào interface, không phụ thuộc implementation cụ thể.
+
+
+4. ÁP DỤNG TRONG SPRING FRAMEWORK
+
+4.1. Định nghĩa Bean
+@Component
+public class InternalPaymentGateway implements PaymentGateway {
+    public void pay(double amount) {
+        System.out.println("Thanh toán nội bộ: " + amount);
+    }
+}
+4.2. Service sử dụng DI
+@Service
+public class RechargeService {
+
+    private final PaymentGateway gateway;
+
+    public RechargeService(PaymentGateway gateway) {
+        this.gateway = gateway;
+    }
+
+    public void processRecharge(String username, double amount) {
+        gateway.pay(amount);
+        System.out.println("Nạp " + amount + " cho " + username);
+    }
+}
+4.3. Trường hợp có nhiều implementation
+@Component("momo")
+public class MomoPaymentGateway implements PaymentGateway { }
+
+@Service
+public class RechargeService {
+
+    private final PaymentGateway gateway;
+
+    public RechargeService(@Qualifier("momo") PaymentGateway gateway) {
+        this.gateway = gateway;
+    }
+}
+
+5. KẾT LUẬN
+* Cách viết ban đầu sử dụng "new" gây ra tight coupling và vi phạm IoC.
+* Dependency Injection giúp giảm phụ thuộc, tăng tính linh hoạt.
+* Spring Framework cung cấp IoC Container để tự động quản lý và inject dependency.
+* Nhờ đó hệ thống dễ mở rộng, dễ bảo trì và dễ kiểm thử hơn.
+
+

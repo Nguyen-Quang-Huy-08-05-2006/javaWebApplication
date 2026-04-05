@@ -1,0 +1,59 @@
+1. VẤN ĐỀ TRONG MÃ NGUỒN
+
+Đoạn code:
+
+@Component
+public class PlaySession {
+    private double playTime = 0;
+
+    public void addTime(double time) {
+        this.playTime += time;
+    }
+}
+
+Phân tích:
+
+* PlaySession được đánh dấu @Component nên sẽ được Spring quản lý như một Bean.
+* Mặc định trong Spring, Bean có scope là Singleton.
+* Điều này có nghĩa là chỉ có duy nhất một instance của PlaySession tồn tại trong toàn bộ hệ thống.
+
+2. NGUYÊN NHÂN GÂY LỖI
+
+* Vì PlaySession là Singleton nên tất cả các máy trạm đều dùng chung một đối tượng.
+* Biến playTime trở thành dữ liệu dùng chung (shared state).
+* Khi một máy cộng thời gian chơi, giá trị này bị thay đổi trên cùng một object.
+
+Ví dụ:
+
+* Máy 01 gọi addTime(10) → playTime = 10
+* Máy 02 gọi addTime(5) → playTime = 15
+
+=> Cả hai máy đều đang thao tác trên cùng một biến playTime.
+
+3. HẬU QUẢ
+
+* Thời gian chơi bị cộng dồn giữa các máy.
+* Hệ thống tính tiền sai hoàn toàn.
+* Không thể phân biệt phiên chơi của từng người dùng.
+* Vi phạm nguyên tắc độc lập dữ liệu giữa các session.
+
+4. GIẢI THÍCH THEO SCOPE BEAN
+
+Singleton (mặc định):
+
+* Một Bean duy nhất trong toàn bộ ứng dụng.
+* Tất cả các nơi sử dụng đều tham chiếu đến cùng một object.
+* Phù hợp với các service stateless (không lưu trạng thái).
+
+Prototype:
+
+* Mỗi lần yêu cầu sẽ tạo ra một instance mới.
+* Không dùng chung dữ liệu giữa các đối tượng.
+* Phù hợp với các object có trạng thái riêng như PlaySession.
+
+5. KẾT LUẬN
+
+* Lỗi xảy ra vì sử dụng Bean Singleton cho một đối tượng có trạng thái (playTime).
+* Điều này khiến nhiều người dùng dùng chung dữ liệu.
+* Với nghiệp vụ “phiên chơi”, mỗi người dùng phải có một instance riêng biệt.
+* Do đó cần sử dụng scope phù hợp (Prototype hoặc quản lý thủ công) để đảm bảo mỗi phiên chơi là độc lập.

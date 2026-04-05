@@ -1,0 +1,139 @@
+1. PHÂN TÍCH NGHIỆP VỤ
+Mô tả:
+* Người dùng đang chơi game tại máy trạm.
+* Người dùng muốn đặt đồ ăn (ví dụ: Mì xào bò) ngay tại chỗ.
+* Hệ thống cần:
+
+  * Kiểm tra kho còn hàng không
+  * Kiểm tra tài khoản người dùng có đủ tiền không
+  * Nếu hợp lệ thì trừ tiền và trừ kho
+
+
+2. INPUT / OUTPUT
+Input:
+* username (String): tên tài khoản người dùng
+* foodName (String): tên món ăn
+* quantity (int): số lượng món
+
+Output:
+
+* Thành công:
+
+  * Thông báo đặt món thành công
+  * Số dư tài khoản sau khi trừ
+* Thất bại:
+
+  * "Hết hàng"
+  * "Không đủ tiền"
+  * "Người dùng không tồn tại"
+
+
+3. THIẾT KẾ KIẾN TRÚC (LOOSE COUPLING + DI)
+Các thành phần chính:
+
+* OrderFoodService
+* InventoryRepository (quản lý kho)
+* UserAccountRepository (quản lý tài khoản)
+
+Nguyên tắc:
+
+* Service không tự tạo Repository
+* Sử dụng Dependency Injection để tiêm từ bên ngoài
+* Phụ thuộc vào abstraction (interface), không phụ thuộc class cụ thể
+
+
+4. THIẾT KẾ INTERFACE
+public interface InventoryRepository {
+    int getStock(String foodName);
+    void reduceStock(String foodName, int quantity);
+}
+
+public interface UserAccountRepository {
+    double getBalance(String username);
+    void deductBalance(String username, double amount);
+    boolean exists(String username);
+}
+
+
+5. SERVICE SỬ DỤNG DEPENDENCY INJECTION
+@Service
+public class OrderFoodService {
+
+    private final InventoryRepository inventoryRepo;
+    private final UserAccountRepository userRepo;
+
+    public OrderFoodService(InventoryRepository inventoryRepo,
+                            UserAccountRepository userRepo) {
+        this.inventoryRepo = inventoryRepo;
+        this.userRepo = userRepo;
+    }
+
+    public String orderFood(String username, String foodName, int quantity) {
+
+        // Kiểm tra user tồn tại
+        if (!userRepo.exists(username)) {
+            return "Người dùng không tồn tại";
+        }
+
+        // Kiểm tra kho
+        int stock = inventoryRepo.getStock(foodName);
+        if (stock <= 0 || stock < quantity) {
+            return "Hết hàng";
+        }
+
+        // Giả sử mỗi món giá cố định 20
+        double totalPrice = quantity * 20;
+
+        // Kiểm tra số dư
+        double balance = userRepo.getBalance(username);
+        if (balance < totalPrice) {
+            return "Không đủ tiền";
+        }
+
+        // Xử lý hợp lệ
+        inventoryRepo.reduceStock(foodName, quantity);
+        userRepo.deductBalance(username, totalPrice);
+
+        return "Đặt món thành công";
+    }
+}
+
+
+6. LUỒNG XỬ LÝ LOGIC
+Bước 1: Nhận request (username, foodName, quantity)
+
+Bước 2: Kiểm tra user tồn tại
+- Nếu không -> trả về lỗi
+
+Bước 3: Kiểm tra số lượng trong kho
+- Nếu = 0 hoặc < quantity -> trả về "Hết hàng"
+
+Bước 4: Tính tổng tiền
+
+Bước 5: Kiểm tra số dư tài khoản
+- Nếu không đủ -> trả về "Không đủ tiền"
+
+Bước 6: Thực hiện giao dịch
+- Trừ kho
+- Trừ tiền
+
+Bước 7: Trả kết quả thành công
+
+
+7. XỬ LÝ LỖI (BẪY DỮ LIỆU)
+* Hết hàng:
+  stock <= 0 hoặc stock < quantity
+
+* Không đủ tiền:
+  balance < totalPrice
+
+* User không tồn tại:
+  exists(username) == false
+
+
+8. KẾT LUẬN
+* Đã tách biệt rõ Service và Repository -> đảm bảo Loose Coupling
+* Áp dụng Dependency Injection -> dễ mở rộng, dễ test
+* Luồng xử lý rõ ràng, kiểm soát lỗi đầy đủ
+* Phù hợp triển khai trong hệ thống thực tế (Spring Backend)
+

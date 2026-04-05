@@ -1,0 +1,164 @@
+BÀI TẬP: TỐI ƯU CỔNG THÔNG BÁO NẠP TIỀN (DEPENDENCY INJECTION TRADE-OFF)
+
+
+1. PHÂN TÍCH YÊU CẦU
+Mô tả:
+
+* Khi người dùng nạp tiền thành công, hệ thống cần gửi thông báo.
+* Có 2 kênh gửi:
+
+  * EmailSender
+  * SmsSender
+
+Yêu cầu kỹ thuật:
+
+* NotificationService phải sử dụng DI để nhận các dependency.
+* Hệ thống phải đảm bảo ổn định ngay cả khi dịch vụ SMS bị lỗi (mất kết nối).
+
+
+2. CÁC GIẢI PHÁP DEPENDENCY INJECTION
+Giải pháp 1: Constructor Injection
+@Service
+public class NotificationService {
+
+    private final EmailSender emailSender;
+    private final SmsSender smsSender;
+
+    public NotificationService(EmailSender emailSender, SmsSender smsSender) {
+        this.emailSender = emailSender;
+        this.smsSender = smsSender;
+    }
+
+    public void notify(String message) {
+        emailSender.send(message);
+        smsSender.send(message);
+    }
+}
+
+
+Giải pháp 2: Field Injection
+@Service
+public class NotificationService {
+
+    @Autowired
+    private EmailSender emailSender;
+
+    @Autowired
+    private SmsSender smsSender;
+
+    public void notify(String message) {
+        emailSender.send(message);
+        smsSender.send(message);
+    }
+}
+
+
+3. BẢNG SO SÁNH
+
+
+Tiêu chí: Tính rõ ràng (Explicit Dependency)
+
+* Constructor Injection:
+
+  * Thể hiện rõ dependency ngay khi khởi tạo object
+  * Bắt buộc phải có đủ dependency mới tạo được object
+
+* Field Injection:
+
+  * Dependency bị ẩn
+  * Không biết class cần gì nếu chỉ nhìn constructor
+
+
+Tiêu chí: Khả năng kiểm thử (Testability)
+
+* Constructor Injection:
+
+  * Dễ mock dependency khi test
+  * Có thể truyền mock object trực tiếp
+
+* Field Injection:
+
+  * Khó test hơn
+  * Cần dùng Reflection hoặc Spring context
+
+
+Tiêu chí: Tính bất biến (Immutability)
+
+* Constructor Injection:
+
+  * Có thể dùng final → đảm bảo không bị thay đổi
+
+* Field Injection:
+
+  * Không đảm bảo immutable
+  * Có thể bị thay đổi ngoài ý muốn
+
+
+Tiêu chí: Xử lý lỗi runtime (liên quan bẫy dữ liệu)
+
+* Constructor Injection:
+
+  * Lỗi xảy ra sớm (fail-fast nếu thiếu dependency)
+  * Dễ kiểm soát logic fallback
+
+* Field Injection:
+
+  * Có thể bị NullPointerException nếu inject lỗi
+  * Khó debug hơn
+
+
+Tiêu chí: Khả năng mở rộng
+
+* Constructor Injection:
+
+  * Dễ thêm dependency mới
+  * Code rõ ràng, maintain tốt
+
+* Field Injection:
+
+  * Nhanh nhưng dễ gây rối khi hệ thống lớn
+
+
+4. PHÂN TÍCH BẪY DỮ LIỆU (SMS BỊ LỖI)
+
+
+Tình huống:
+
+* SmsSender bị mất kết nối mạng khi gửi
+
+Hướng xử lý:
+
+* Không được để toàn bộ notify fail
+* Cần tách logic:
+
+  public void notify(String message) {
+  emailSender.send(message);
+
+    try {
+        smsSender.send(message);
+    } catch (Exception e) {
+        System.out.println("SMS lỗi, fallback sang Email");
+    }
+
+  }
+
+=> Email vẫn gửi bình thường dù SMS lỗi
+
+
+5. KẾT LUẬN LỰA CHỌN
+
+
+Chọn: Constructor Injection
+
+Lý do:
+
+* Rõ ràng dependency (clean code)
+* Dễ test (mock dễ)
+* An toàn hơn (immutable, tránh null)
+* Phù hợp với hệ thống lớn, production
+
+Field Injection chỉ phù hợp:
+
+* Demo nhanh
+* Code nhỏ, không yêu cầu test
+
