@@ -16,7 +16,7 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 public class AppConfig {
     // Cấu hình view
     @Bean
-    public ViewResolver viewResolver() {
+    public InternalResourceViewResolver viewResolver() {
         InternalResourceViewResolver viewResolver = new InternalResourceViewResolver();
         // Set tiền tố
         viewResolver.setPrefix("/WEB-INF/views/");

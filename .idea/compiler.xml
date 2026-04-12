@@ -3,6 +3,8 @@
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel>
       <module name="Sess02" target="1.8" />
+      <module name="Sess02.main" target="1.8" />
+      <module name="Sess02.test" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>
