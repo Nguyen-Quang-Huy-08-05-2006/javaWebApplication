@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Combo</title>
+</head>
+<body>
+
+<h2>Tạo Combo</h2>
+
+<p style="color:red" th:text="${error}"></p>
+
+<form th:action="@{/merchant/combo/add}"
+      th:object="${combo}"
+      method="post"
+      enctype="multipart/form-data">
+
+    <label>Chọn món:</label><br/>
+
+    <div th:each="f : ${foods}">
+        <input type="checkbox" th:value="${f}" th:field="*{itemList}"/>
+        <span th:text="${f}"></span><br/>
+    </div>
+
+    <br/>
+
+    <label>Banner:</label><br/>
+    <input type="file" name="banner"/><br/><br/>
+
+    <button type="submit">Tạo Combo</button>
+
+</form>
+
+</body>
+</html>

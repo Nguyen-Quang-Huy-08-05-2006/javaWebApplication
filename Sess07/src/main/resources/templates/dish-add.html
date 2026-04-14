@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thêm món</title>
+</head>
+<body>
+
+<h2>Thêm món mới</h2>
+
+<form th:action="@{/merchant/dish/add}" th:object="${dish}" method="post">
+
+    <label>Tên món:</label><br/>
+    <input type="text" th:field="*{name}" /><br/><br/>
+
+    <label>Nhóm món:</label><br/>
+    <select th:field="*{category}">
+        <option value="">-- Chọn nhóm --</option>
+        <option th:each="c : ${categories}"
+                th:value="${c}"
+                th:text="${c}">
+        </option>
+    </select><br/><br/>
+
+    <button type="submit">Thêm</button>
+
+</form>
+
+</body>
+</html>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Chi tiết</title>
+</head>
+<body>
+
+<h2>Chi tiết món ăn</h2>
+
+<p style="color:green" th:text="${success}"></p>
+
+<p>Tên: <span th:text="${food.name}"></span></p>
+<p>Danh mục: <span th:text="${food.category}"></span></p>
+<p>Giá: <span th:text="${food.price}"></span></p>
+
+<p>Đường dẫn ảnh:</p>
+<p th:text="${food.imagePath}"></p>
+
+</body>
+</html>

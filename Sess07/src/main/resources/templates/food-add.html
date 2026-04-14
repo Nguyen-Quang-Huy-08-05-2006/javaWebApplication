@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thêm món ăn</title>
+</head>
+<body>
+
+<h2>Thêm món ăn</h2>
+
+<p style="color:red" th:text="${error}"></p>
+
+<form th:action="@{/merchant/food/add}"
+      th:object="${food}"
+      method="post"
+      enctype="multipart/form-data">
+
+    <label>Tên món:</label><br/>
+    <input type="text" th:field="*{name}" /><br/><br/>
+
+    <label>Danh mục:</label><br/>
+    <input type="text" th:field="*{category}" /><br/><br/>
+
+    <label>Giá:</label><br/>
+    <input type="number" th:field="*{price}" /><br/><br/>
+
+    <label>Ảnh:</label><br/>
+    <input type="file" name="image" /><br/><br/>
+
+    <button type="submit">Thêm</button>
+
+</form>
+
+</body>
+</html>
